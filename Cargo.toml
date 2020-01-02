@@ -1,0 +1,9 @@
+[workspace]
+members = [
+    "evm_se",
+    "parity_connector",
+]
+
+[profile.bench]
+debug = true
+

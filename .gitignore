@@ -1,0 +1,14 @@
+/target/
+/evmexec/target/
+**/*.rs.bk
+Cargo.lock
+
+# Outputfiles
+*.dot
+*.smt2
+*.svg
+*.log
+*.html
+*.csv
+
+*.txt
