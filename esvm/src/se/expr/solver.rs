@@ -1,6 +1,6 @@
 use std::{fmt, sync::Arc};
 
-use crossbeam::queue::MsQueue;
+use crossbeam::queue::SegQueue;
 
 use crate::se::expr::{
     boolector::BoolectorInstance, bval::BVal, formel_builder::SmtLib2Builder, yice::YiceInstance,
@@ -71,7 +71,7 @@ impl<'a> Drop for SolverHandle<'a> {
 }
 
 pub struct SolverPool {
-    queue: MsQueue<Box<dyn Solver>>,
+    queue: SegQueue<Box<dyn Solver>>,
 }
 
 impl fmt::Debug for SolverPool {
@@ -133,7 +133,7 @@ fn yice_pool_with_workers(count: usize, timeout: usize) -> SolverPool {
 
 impl SolverPool {
     fn new() -> Self {
-        let queue = MsQueue::new();
+        let queue = SegQueue::new();
         SolverPool { queue }
     }
 
@@ -142,8 +142,21 @@ impl SolverPool {
     }
 
     pub fn initialize_from_formel_builder(&self, builder: &SmtLib2Builder) -> SolverHandle {
+        let worker = {
+            let worker;
+            loop {
+                match self.queue.pop() {
+                    Ok(w) => {
+                        worker = Some(w);
+                        break;
+                    }
+                    Err(_) => (),
+                }
+            }
+            worker
+        };
         let mut handle = SolverHandle {
-            worker: Some(self.queue.pop()),
+            worker: worker,
             pool: self,
         };
         handle.initialize_from_formel_builder(builder);

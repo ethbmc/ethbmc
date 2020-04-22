@@ -6,7 +6,7 @@ use std::sync::{
 };
 use std::thread::{self, JoinHandle};
 
-use crossbeam::queue::MsQueue;
+use crossbeam::queue::SegQueue;
 use crossbeam_channel as channel;
 
 use crate::se::symbolic_edge::{EdgeType, SymbolicEdge};
@@ -19,7 +19,7 @@ pub struct SymbolicGraph {
     initial_state: Arc<SeState>,
     end_states: Vec<Arc<SeState>>,
 
-    unprocessed_states: Arc<MsQueue<Arc<SeState>>>,
+    unprocessed_states: Arc<SegQueue<Arc<SeState>>>,
     being_processed: Arc<AtomicUsize>,
 
     // channels for communicating with worker threads
@@ -228,7 +228,7 @@ impl SymbolicGraph {
         let edges = vec![];
         let end_states = vec![];
 
-        let unprocessed_states = Arc::new(MsQueue::new());
+        let unprocessed_states = Arc::new(SegQueue::new());
         unprocessed_states.push(Arc::clone(&initial_state));
         let being_processed = Arc::new(AtomicUsize::new(0));
 
@@ -300,7 +300,7 @@ impl SymbolicGraph {
             let mut counter = 0;
 
             loop {
-                if let Some(next_state) = unprocessed_states.try_pop() {
+                if let Ok(next_state) = unprocessed_states.pop() {
                     counter += 1;
                     if counter >= 20_000 {
                         break;
