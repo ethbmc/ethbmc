@@ -103,7 +103,7 @@ impl Evm {
         };
         // also return the path object to ensure the temporary file does not get dropped until the
         // output of the exeution is read
-        Ok((BufReader::new(read_handle), path))
+        Ok((BufReader::new(Box::new(read_handle)), path))
     }
 
     fn parse_trace(
@@ -330,5 +330,4 @@ mod tests {
         };
         evm.execute(input)
     }
-
 }

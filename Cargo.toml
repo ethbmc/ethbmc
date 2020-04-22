@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "evm_se",
+    "esvm",
     "parity_connector",
 ]
 
