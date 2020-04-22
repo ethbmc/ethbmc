@@ -80,12 +80,6 @@ pub struct SeConfig {
     /// Disable the verification phase
     pub no_verify: bool,
 
-    /// Set this flag to dump a cfg afterwards.
-    pub cfg: bool,
-
-    /// Set this flag
-    pub targets: bool,
-
     /// Dump solver queries
     pub dump_solver: bool,
 
@@ -124,8 +118,6 @@ impl SeConfig {
             message_bound: 5,
             dgraph: false,
             no_verify: false,
-            cfg: false,
-            targets: false,
             dump_solver: false,
             solver_timeout: 120_000,
             parity: None,

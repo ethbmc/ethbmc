@@ -74,7 +74,6 @@ pub struct AnalysisResult {
 
     pub executed: bool,
     pub copy_instructions: bool,
-    pub interesting_instructions: Option<Vec<InterestingInstructions>>,
 
     pub attacks: Option<Vec<Attack>>,
     pub precompiled_contracts: Option<Vec<PrecompiledContracts>>,
@@ -105,7 +104,6 @@ pub fn symbolic_analysis(se_env: SeEnviroment, config: SeConfig, pool: Solvers) 
         executed: false,
         copy_instructions: false,
         precompiled_contracts: None,
-        interesting_instructions: None,
         attacks: None,
         loaded_accounts: None,
         analysis_time: None,
@@ -237,7 +235,7 @@ pub fn symbolic_analysis(se_env: SeEnviroment, config: SeConfig, pool: Solvers) 
 
 pub fn arguments<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
     app
-        .arg(Arg::with_name("block").long("block").takes_value(true).help("The blocknumber to evaluate, defaults to latest block"))
+        .arg(Arg::with_name("block").long("block").takes_value(true).help("The blocknumber to evaluate, defaults to latest block. Note you will need an archive node for anaylzing blocks which are not the latest."))
         .arg(Arg::with_name("loop_bound").long("loop-bound").short("b").takes_value(true).help("Set bound for loops"))
         .arg(Arg::with_name("call_bound").long("call-bound").short("c").takes_value(true).help("Set bound for calls"))
         .arg(Arg::with_name("message_bound").long("message-bound").short("m").takes_value(true).help("Set bound for message iteration"))
@@ -245,23 +243,23 @@ pub fn arguments<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
         .arg(Arg::with_name("cores").long("cores").takes_value(true).help("Set the amount of cores the se can use"))
         // Optimizations
         .arg(Arg::with_name("disable_optimizations").long("no-optimizations").help("Disable all optimizations").long_help("Disables all optimizations. This will disable support for keccak with concrete value as well as constant folding which is on by default otherwise."))
-        .arg(Arg::with_name("all_optimizations").short("a").long("all-optimizations").help("Include all optimizations"))
-        .arg(Arg::with_name("arithmetic_simplifications").short("r").long("arithmetic-rewrites").help("Use arithmetic rewrites for values"))
-        .arg(Arg::with_name("constant_load").short("l").help("Use constant memory loads where possible"))
         .arg(Arg::with_name("concrete_copy").long("concrete-copy").help("Use concrete calldatacopy"))
         // Analysis
         .arg(Arg::with_name("debug_graph").short("d").long("debug-grap").help("Dump debug graph after analysis"))
         .arg(Arg::with_name("no_verify").long("no-verify").help("Skip verification phase."))
         .arg(Arg::with_name("dump-solver").long("dump-solver").help("Dump all solver queries to ./queries"))
-        .arg(Arg::with_name("cfg").short("g").long("cfg").help("Dump CFG after analysis"))
-        .arg(Arg::with_name("targets").short("t").long("targets").help("Dump targets after se"))
-        .arg(Arg::with_name("ip").long("ip").takes_value(true).help("The ip of a running parity node with pruning=archive"))
-        .arg(Arg::with_name("port").long("port").takes_value(true).help("The port of a running parity node with pruning=archive"))
+        .arg(Arg::with_name("ip").long("ip").takes_value(true).help("The ip of a running node."))
+        .arg(Arg::with_name("port").long("port").takes_value(true).help("The port of a running node."))
 }
 
 pub fn set_global_config(matches: &clap::ArgMatches) {
     // set config
     let mut config = CONFIG.write().unwrap();
+
+    // always use thee optimizations
+    config.arithmetic_simplification = true;
+    config.concrete_load = true;
+
     if let Some(b) = matches.value_of("loop_bound") {
         config.loop_bound = b.parse().expect("Incorrect bound parameter supplied!");
     }
@@ -279,14 +277,8 @@ pub fn set_global_config(matches: &clap::ArgMatches) {
     } else {
         config.solver_timeout = 120_000;
     }
-    if matches.is_present("arithmetic_simplification") {
-        config.arithmetic_simplification = true;
-    }
     if matches.is_present("concrete_copy") {
         config.concrete_copy = true;
-    }
-    if matches.is_present("constant_load") {
-        config.concrete_load = true;
     }
     if matches.is_present("no_verify") {
         config.no_verify = true;
@@ -294,18 +286,8 @@ pub fn set_global_config(matches: &clap::ArgMatches) {
     if matches.is_present("debug_graph") {
         config.dgraph = true;
     }
-    if matches.is_present("cfg") {
-        config.cfg = true;
-    }
-    if matches.is_present("targets") {
-        config.targets = true;
-    }
     if matches.is_present("dump-solver") {
         config.dump_solver = true;
-    }
-    if matches.is_present("all_optimizations") {
-        config.arithmetic_simplification = true;
-        config.concrete_load = true;
     }
     if matches.is_present("disable_optimizations") {
         config.disable_optimizations = true;
@@ -455,12 +437,6 @@ impl fmt::Display for AnalysisResult {
             self.code_length,
         )?;
         writeln!(f, "\tAnalysis conducted at block(s): {:?}", self.blocks)?;
-        if let Some(ref ins) = self.interesting_instructions {
-            writeln!(f, "\tInteresting instruction(s):")?;
-            for i in ins {
-                writeln!(f, "\t\t- {}", i)?;
-            }
-        }
         if !self.executed {
             writeln!(
                 f,
@@ -530,27 +506,6 @@ impl fmt::Display for PrecompiledContracts {
             PrecompiledContracts::EcAddition => write!(f, "ec addition"),
             PrecompiledContracts::EcScalarMultiplikation => write!(f, "ec scalar multiplication"),
             PrecompiledContracts::EcPairingEquation => write!(f, "ec pairing equation"),
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-pub enum InterestingInstructions {
-    Blockhash,
-    Blocknumber,
-    Timestamp,
-    Coinbase,
-    Difficulty,
-}
-
-impl fmt::Display for InterestingInstructions {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            InterestingInstructions::Blockhash => write!(f, "Blockhash"),
-            InterestingInstructions::Blocknumber => write!(f, "Blocknumber"),
-            InterestingInstructions::Timestamp => write!(f, "Timestamp"),
-            InterestingInstructions::Coinbase => write!(f, "Cointbase"),
-            InterestingInstructions::Difficulty => write!(f, "Difficulty"),
         }
     }
 }
@@ -628,29 +583,17 @@ fn analyze_contract_code(code: &[u8], res: &mut AnalysisResult) -> bool {
     let disasm = disasm::Disasm::from_raw(&code);
     res.code_length = code.len() as u32;
 
-    let mut interesting_instructions = Vec::new();
     for op in disasm.opcodes() {
         // if we have not found any copy/vulnerable instruction keep analysing
         if !res.executed {
-            res.executed = vulnerable_instruction(&op);
+            res.executed = true;
         }
         if !res.copy_instructions {
             res.copy_instructions = copy_instructions(&op);
         }
-        if let Some(ins) = interesting_instruction(&op) {
-            interesting_instructions.push(ins);
-        }
-    }
-
-    if !interesting_instructions.is_empty() {
-        res.interesting_instructions = Some(interesting_instructions);
     }
 
     res.executed
-}
-
-fn vulnerable_instruction(op: &Instr) -> bool {
-    true
 }
 
 // codecopy and extcodecopy are also copy instructions, however we only support them in a constant
@@ -664,16 +607,5 @@ fn copy_instructions(op: &Instr) -> bool {
         | Instr::ICallCode
         | Instr::IDelegateCall => true,
         _ => false,
-    }
-}
-
-fn interesting_instruction(op: &Instr) -> Option<InterestingInstructions> {
-    match op {
-        Instr::IBlockHash => Some(InterestingInstructions::Blockhash),
-        Instr::INumber => Some(InterestingInstructions::Blocknumber),
-        Instr::ITimeStamp => Some(InterestingInstructions::Timestamp),
-        Instr::ICoinBase => Some(InterestingInstructions::Coinbase),
-        Instr::IDifficulty => Some(InterestingInstructions::Difficulty),
-        _ => None,
     }
 }
