@@ -1,7 +1,7 @@
 # EthBMC: A Bounded Model Checker for Smart Contracts
 
 <p>
-<img align="right" width="350"  src="media/ethfant.svg"> 
+<img align="right" width="350"  src="media/ethfant.png"> 
 </p>
 
 This is the code repository to our Usenix Security 2020 paper [EthBMC](https://www.ei.ruhr-uni-bochum.de/media/emma/veroeffentlichungen/2020/04/02/EthBMC-USENIX20.pdf).
