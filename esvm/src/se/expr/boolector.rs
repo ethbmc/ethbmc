@@ -54,10 +54,11 @@ impl BoolectorInstance {
 
     fn check(&self, output: &str) -> bool {
         if output.contains("boolector") {
-            panic!(
+            debug!(
                 "Boolector error: {}, for input: {}",
                 output, self.input_buffer
             );
+            false
         } else if output.contains("unsat") {
             false
         } else if output.contains("sat") {
@@ -197,5 +198,4 @@ mod tests {
             boolector.get_values(&["a".to_owned(), String::from("b")])
         );
     }
-
 }

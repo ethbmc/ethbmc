@@ -483,7 +483,7 @@ impl Analysis {
                             result.lock().unwrap().push(attack);
                         }
                     } else {
-                        warn!(
+                        debug!(
                             "Found attack, {}, but could not generate tx data!",
                             AttackType::CanChangeOwner
                         );
@@ -505,7 +505,7 @@ impl Analysis {
                     result.lock().unwrap().push(attack);
                 }
             } else {
-                warn!(
+                debug!(
                     "Found attack, {}, but could not generate tx data!",
                     AttackType::DeleteContract
                 );
@@ -528,7 +528,7 @@ impl Analysis {
                     result.lock().unwrap().push(attack);
                 }
             } else {
-                warn!(
+                debug!(
                     "Found attack, {}, but could not generate tx data!",
                     AttackType::HijackControlFlow
                 );
@@ -560,10 +560,10 @@ impl Analysis {
                     };
                     result.lock().unwrap().push(attack);
                 } else {
-                    warn!("Found a potential attack state, but could not verify it!");
+                    debug!("Found a potential attack state, but could not verify it!");
                 }
             } else {
-                warn!(
+                debug!(
                     "Found attack, {}, but could not generate tx data!",
                     AttackType::StealMoney
                 );
@@ -597,7 +597,7 @@ impl Analysis {
         if let Some(data) = self.generate_tx_data(state) {
             return Some(data);
         }
-        warn!("Could not generate tx data!");
+        debug!("Could not generate tx data!");
         None
     }
 
@@ -657,7 +657,7 @@ impl Analysis {
             evm = match execution.into_evm_updated() {
                 Ok(res) => res,
                 Err(e) => {
-                    warn!("Error during transactions execution: {:?}", e);
+                    error!("Error during transactions execution: {:?}", e);
                     return None;
                 }
             };

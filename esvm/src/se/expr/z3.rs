@@ -223,7 +223,7 @@ impl Z3Instance {
         let res = match self.recv() {
             Ok(r) => r,
             Err(err) => {
-                error!(
+                debug!(
                     "Error in z3 output: {}\nInput: \n{}",
                     err,
                     self.debug_ouput()
@@ -246,8 +246,7 @@ impl Z3Instance {
             }
             return false;
         }
-        error!("Strange z3 output: {}", res);
-        debug!("{}", self.debug_ouput());
+        debug!("Strange z3 output: {}", res);
         false
     }
 

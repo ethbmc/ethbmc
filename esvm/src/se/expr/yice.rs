@@ -72,8 +72,8 @@ impl YiceInstance {
 
     fn check(&self, output: &str) -> bool {
         if output.contains("yice") {
-            error!("Yice error: {}, for input: {}", output, self.input_buffer);
-            panic!("Yice error: {}, for input: {}", output, self.input_buffer);
+            debug!("Yice error: {}, for input: {}", output, self.input_buffer);
+            false
         } else if output.contains("unsat") {
             false
         } else if output.contains("sat") {

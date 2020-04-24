@@ -12,7 +12,7 @@ To compile and use EthBMC you will need:
 
 - Rust nightly (tested with version 1.44.0)
 - [go-ethereum](https://github.com/ethereum/go-ethereum) stand alone evm; make sure it is in your PATH (tested with version 1.8.27)
-- we offer support for three different smt solvers (tested with yices2 version 2.6.2. Note we recommend Yices2; /Users/joelfrank/Downloads/t2ih7kpjndu41.jpg see Section 6.5 in the paper.):
+- we offer support for three different smt solvers (tested with yices2 version 2.6.1. Note we recommend Yices2; see Section 6.5 in the paper.):
 	- [Z3](https://github.com/Z3Prover/z3)
 	- [Yices2](https://github.com/SRI-CSL/yices2)
 	- [Boolector](https://github.com/Boolector/boolector)
@@ -74,21 +74,28 @@ ARGS:
 
 The easiest way to use EthBMC is to create an input yml file (see examples):
 ```
-ethbmc examples/parity/parity.yml
+./target/release/ethbmc examples/rubixi/rubixi.yml
 ```
 
 When you have a running Ethereum node you can also use it to analyze an on-chain account:
 ```
-ethbmc -x --ip ip.to.your.node  0xAccount_Address
+./target/release/ethbmc -x --ip ip.to.your.node  0xAccount_Address
 ```
 
-When you have a patched parity archive node (see section patched parity node) you can also use it to analyze an account at a specific block:
+When you have an archive node you can also use it to analyze an account at a specific block:
 ```
-ethbmc -x --ip ip.to.your.node --block block_number_to_analyze 0xAccount_Address
+./target/release/ethbmc -x --ip ip.to.your.node --block block_number_to_analyze 0xAccount_Address
+```
+
+Note when using executing the parity example we recommend to limit the loop execution to 1 and use concrete-copy. The bug can still be found without these restrictions, but it takes a long time.
+
+```
+./target/release/ethbmc -b1 --concrete-copy examples/parity/parity.yml
 ```
 
 ### Patched Parity Node
 
+For the on-chain analysis (Section 6.2) we used a patched parity node to obtain the storage of an account. You can still use a normal node which supports the web3 API. However, the analysis then does not take storage variables into account (all variables are assumed to be zero).
 
 ## Tests
 
