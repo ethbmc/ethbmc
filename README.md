@@ -4,7 +4,7 @@
 <img align="right" width="350"  src="media/ethfant.png"> 
 </p>
 
-This is the code repository to our Usenix Security 2020 paper [EthBMC](https://www.ei.ruhr-uni-bochum.de/media/emma/veroeffentlichungen/2020/04/02/EthBMC-USENIX20.pdf).
+This is the code repository for our Usenix Security 2020 paper [EthBMC](https://www.ei.ruhr-uni-bochum.de/media/emma/veroeffentlichungen/2020/04/02/EthBMC-USENIX20.pdf).
 
 
 > The introduction of smart contracts has significantly advanced the state-of-the-art in cryptocurrencies. Smart contracts are programs who live on the blockchain, governing the flow of money. However, the promise of monetary gain has attracted miscreants, resulting in spectacular hacks which resulted in the loss of millions worth of currency. In response, several powerful static analysis tools were developed to address these problems. We surveyed eight recently proposed static analyzers for Ethereum smart contracts and found that none of them captures all relevant features of the Ethereum ecosystem. For example, we discovered that a precise memory model is missing and inter-contract analysis is only partially supported.
@@ -17,13 +17,13 @@ To compile and use EthBMC you will need:
 
 - Rust nightly (tested with version 1.44.0)
 - [go-ethereum](https://github.com/ethereum/go-ethereum) stand alone evm; make sure it is in your PATH (tested with version 1.8.27)
-- We offer support for three different smt solvers (tested with yices2 version 2.6.1. Note we recommend Yices2; see Section 6.5 in the paper.):
+- We offer support for three different smt solvers (tested with yices2 version 2.6.1. Note we recommend Yices2; see Section 6.5 in the paper):
 	- [Z3](https://github.com/Z3Prover/z3)
 	- [Yices2](https://github.com/SRI-CSL/yices2)
 	- [Boolector](https://github.com/Boolector/boolector)
 
 
-When using the webservice version (see esvm/bin):
+When using the webservice-version (see esvm/bin):
 - Configuration is done using a [Rocket.toml](https://rocket.rs/v0.4/guide/configuration/#rockettoml)
 - When using the Service with timeouts the service expects a ethbmc binary in the PATH
 
@@ -31,7 +31,7 @@ When using the webservice version (see esvm/bin):
 
 - ethbmc: Simple stand alone binary
 - ethbmc-service: Webservice which accepts accounts and returns the result as json
-- ethbmc-scheduler: Accepts two lists, an account list and a server list, then distributes the accounts between the backing server running the service
+- ethbmc-scheduler: Accepts two lists, an account list and a server list, then distributes the accounts between the backing servers running a service instance
 
 
 ### Building
@@ -39,6 +39,7 @@ When using the webservice version (see esvm/bin):
 ```
 cargo build --release
 ```
+Note when analyzing big contracts you might have to increase Rusts stack size, see [here](https://stackoverflow.com/questions/29937697/how-to-set-the-thread-stack-size-during-compile-time).
 
 ### Usage
 ```
@@ -92,7 +93,7 @@ When you have an archive node you can also use it to analyze an account at a spe
 ./target/release/ethbmc -x --ip ip.to.your.node --block block_number_to_analyze 0xAccount_Address
 ```
 
-Note when executing the parity example (examples/parity) we recommend to limit the loop execution to 1 and use concrete-copy. The bug can still be found without these restrictions, but it takes a long time.
+Note when executing the parity example (examples/parity) we recommend limiting the loop execution to 1 and use concrete-copy. The bug can still be found without these restrictions, but it takes a long time.
 
 ```
 ./target/release/ethbmc -b1 --concrete-copy examples/parity/parity.yml
@@ -100,11 +101,11 @@ Note when executing the parity example (examples/parity) we recommend to limit t
 
 ### Patched Parity Node
 
-For the on-chain analysis (Section 6.2) we used a patched parity node to obtain the storage of an account (the code can be found [here](https://github.com/Joool/openethereum)). You can still use a normal node which supports the web3 API. However, the analysis then does not take storage variables into account (all variables are assumed to be zero). Note to analyze blogs at an earlier time you will need to use a patched archive node.
+For the on-chain analysis (Section 6.2) we used a patched parity node to obtain the storage of an account (the code can be found [here](https://github.com/Joool/openethereum)). You can still use a normal node which supports the web3 API. However, the analysis then does not take storage variables into account (all variables are assumed to be zero). Note to analyze blocks at an earlier time you will need to use a patched archive node.
 
 ## Tests
 
-- test can only be run one at a time at the moment (cargo test -- --test-threads=1)
+- Test can only be run one at a time at the moment (cargo test -- --test-threads=1)
 - Integration tests take a long time and should allways be run with optimizations (cargo test integra --release -- --ignored)
 - Some tests need a deployed parity instance, set PARITY_IP env var to the corresponding ip (PARITY_IP=127.0.0.1 cargo test parity -- --test-threads=1 --ignored)
 
@@ -126,4 +127,4 @@ When you cite our work please use the following bibtex entry:
 ```
 
 ## Acknowledgement
-We would like to thank the [parity](https://www.parity.io/) team for open sourcing their code.
+We would like to thank the [parity](https://www.parity.io/) team for open-sourcing their code.
